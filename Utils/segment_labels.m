@@ -13,7 +13,8 @@ rec=indNeighbors(sub2ind(size(indNeighbors),[1:numel(x)]',rec));
 
 % Find sinks nodes (local maxima)
 % isink=find(slope>=0);rec(isink)=isink;
-isink=find(slope>0);rec(isink)=isink;
+isink=find(slope>0);
+rec(isink)=isink;
 
 % Donors
 ndon = zeros(nn,1); % number of donors

@@ -51,12 +51,28 @@ end
 % determine node surface
 surface=pi.*min(D,[],2).^2; 
 % Compute normals and force them to point towards positive Z
-normals = pcnormals(ptCloud,param.nnptCloud);[normals]=adjustnormals3d(ptCloud.Location(:, 1),ptCloud.Location(:, 2),ptCloud.Location(:, 3),normals,[mean(ptCloud.Location(:,1)), mean(ptCloud.Location(:,2)),10000]);
+normals = pcnormals(ptCloud,param.nnptCloud);
+[normals]=adjustnormals3d(ptCloud.Location(:, 1),ptCloud.Location(:, 2),ptCloud.Location(:, 3),normals,[mean(ptCloud.Location(:,1)), mean(ptCloud.Location(:,2)),10000]);
 % Initial segmentation with Fastscape
-[labels,nlabels,labelsnpoint,stack,nstack,ndon,isink]=segment_labels(ptCloudRot,param,indNeighbors);cmaplabels=rand(nlabels,3);
+[labels,nlabels,labelsnpoint,stack,nstack,ndon,isink]=segment_labels(ptCloudRot,param,indNeighbors);
+cmaplabels=rand(nlabels,3);
     % Plot
-    if param.iplot==1;pcshow(ptCloud.Location,labels);colormap(cmaplabels);hold on;set(gcf,'color','w');set(gca,'color','w');axis equal tight;hold on;plot3(ptCloud.Location(isink,1),ptCloud.Location(isink,2),ptCloud.Location(isink,3),'.r');axis off;end
-    if param.saveplot==1 && param.iplot==1;nom=[param.figurefolder 'labels_ini'];print('-djpeg','-r500',nom);savefig(nom);close;end; %print('-dpdf','-painters',nom);
+    if param.iplot==1;
+        pcshow(ptCloud.Location,labels);
+        colormap(cmaplabels);hold on;set(gcf,'color','w');
+        set(gca,'color','w');
+        axis equal tight;
+        hold on;
+        plot3(ptCloud.Location(isink,1),ptCloud.Location(isink,2),ptCloud.Location(isink,3),'.r');
+        axis off;
+    end
+    if param.saveplot==1 && param.iplot==1;
+        nom=[param.figurefolder 'labels_ini'];
+        print('-djpeg','-r500',nom);
+        savefig(nom);
+        close;
+    end; 
+    %print('-dpdf','-painters',nom);
 % Cluster Labels to prevent over-segmentation
 [labels,nlabels,stack,isink]=cluster_labels(ptCloud,param,indNeighbors,labels,nlabels,stack,ndon,isink,surface,normals);cmaplabels=rand(nlabels,3);
     % Plot

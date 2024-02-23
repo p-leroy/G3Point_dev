@@ -1,9 +1,13 @@
 clearvars;
-addpath('Utils','-end');addpath('Utils/quadfit','-end');  addpath('Utils/geom3d/geom3d/','-end'); 
+addpath('Utils','-end');
+addpath('Utils/quadfit','-end');  
+addpath('Utils/geom3d/geom3d/','-end'); 
 
 %% Inputs
 param.ptCloudname='';% 'Mangaweka.ply' 'Otira_1cm_grains.ply' 'Test1_clean_registered.ply'
-if isempty(param.ptCloudname)==1;[param.ptCloudname,param.ptCloudpathname] = uigetfile('*.ply','Select the *.ply point cloud file');end
+if isempty(param.ptCloudname)==1;
+    [param.ptCloudname,param.ptCloudpathname] = uigetfile('*.ply','Select the *.ply point cloud file');
+end
 
 %% Loading data
 [ptCloud,param]=loadptCloud(param);
@@ -27,39 +31,68 @@ if param.minima==1
     [dist]=disttoplanemultiscale(ptCloud,param.minscale,param.maxscale,param.nscale);
     % Identify and remove local minimas
     ind=find(dist<prctile(dist,95));
-    x=ptCloud.Location(:,1); y=ptCloud.Location(:,2); z=ptCloud.Location(:,3); ptCloud = pointCloud([x(ind) y(ind) z(ind)]);
+    x=ptCloud.Location(:,1); 
+    y=ptCloud.Location(:,2);
+    z=ptCloud.Location(:,3);
+    ptCloud = pointCloud([x(ind) y(ind) z(ind)]);
 end
 
-%% Rotate and detrend the point cloud 
+%% Rotate and detrend the point cloud if neede
 if param.rotdetrend==1 
     % Detrending assume that the plan is already orientated with the grains
     % upward in the z-direction (but the point cloud can be tilted compared to
     % the horizontal plan)
-    [A,B,C,distsigned,distabs]=fitplan(ptCloud.Location);Normal=[-A -B 1]; [Normal]=adjustnormals3d(0,0,0,Normal,[0 0 1e32]); R=vec2rot(Normal, [0 0 1], 'Rik'); meanptCloud=mean(ptCloud.Location); xyzPoints=(R*(ptCloud.Location-meanptCloud)')'+meanptCloud; ptCloudRot = pointCloud(xyzPoints);
+    [A,B,C,distsigned,distabs]=fitplan(ptCloud.Location);Normal=[-A -B 1]; 
+    [Normal]=adjustnormals3d(0,0,0,Normal,[0 0 1e32]); 
+    R=vec2rot(Normal, [0 0 1], 'Rik'); 
+    meanptCloud=mean(ptCloud.Location); 
+    xyzPoints=(R*(ptCloud.Location-meanptCloud)')'+meanptCloud; 
+    ptCloudRot = pointCloud(xyzPoints);
     % Then, if needed, remove a polynomial trend from the ptCloud
-    x=ptCloudRot.Location(:,1);y=ptCloudRot.Location(:,2);z=ptCloudRot.Location(:,3); A = [ones(size(x)) x y x.^2 x.*y y.^2] \ z; z= z -( A(1) + A(2).*x + A(3).*y + A(4).*x.^2 + A(5).*x.*y + A(6).*y.^2); ptCloudRot = pointCloud([x y z]);
+    x=ptCloudRot.Location(:,1);
+    y=ptCloudRot.Location(:,2);
+    z=ptCloudRot.Location(:,3); 
+    A = [ones(size(x)) x y x.^2 x.*y y.^2] \ z; 
+    z= z -( A(1) + A(2).*x + A(3).*y + A(4).*x.^2 + A(5).*x.*y + A(6).*y.^2); 
+    ptCloud = pointCloud([x y z]);
 end
 
 %% Show the clean point cloud
     % Plot
-    if param.iplot==1;pcshow(ptCloudRot.Location,ptCloudRot.Location(:,3));set(gcf,'color','w');set(gca,'color','w');axis equal tight;cb = colorbar('north');set(cb,'position',[.5 .75 .1 .02]);ylabel(cb,'Elevation');axis off;end
-    if param.saveplot==1 && param.iplot==1;nom=[param.figurefolder 'elevation'];print('-djpeg','-r500',nom);savefig(nom);close;end; %print('-dpdf','-painters',nom);
+    if param.iplot==1;pcshow(ptCloud.Location,ptCloud.Location(:,3));
+        set(gcf,'color','w');set(gca,'color','w');
+        axis equal tight;
+        cb = colorbar('north');
+        set(cb,'position',[.5 .75 .1 .02]);
+        ylabel(cb,'Elevation');
+        axis off;
+    end
+    if param.saveplot==1 && param.iplot==1;
+        nom=[param.figurefolder 'elevation'];
+        print('-djpeg','-r500',nom);
+        savefig(nom);
+        close;
+    end; %print('-dpdf','-painters',nom);
 
 %% Segment and cluster the point cloud into a point cloud of potential grains
 % Find neighbors of point cloud 
-[indNeighbors,D]=knnsearch(ptCloud.Location,ptCloud.Location,'K',param.nnptCloud+1);indNeighbors=indNeighbors(:,2:end);D=D(:,2:end);
+[indNeighbors,D]=knnsearch(ptCloud.Location,ptCloud.Location,'K',param.nnptCloud+1);
+indNeighbors=indNeighbors(:,2:end);
+D=D(:,2:end);
 % determine node surface
 surface=pi.*min(D,[],2).^2; 
 % Compute normals and force them to point towards positive Z
 normals = pcnormals(ptCloud,param.nnptCloud);
 [normals]=adjustnormals3d(ptCloud.Location(:, 1),ptCloud.Location(:, 2),ptCloud.Location(:, 3),normals,[mean(ptCloud.Location(:,1)), mean(ptCloud.Location(:,2)),10000]);
 % Initial segmentation with Fastscape
-[labels,nlabels,labelsnpoint,stack,nstack,ndon,isink]=segment_labels(ptCloudRot,param,indNeighbors);
+[labels,nlabels,labelsnpoint,stack,nstack,ndon,isink]=segment_labels(ptCloud,param,indNeighbors);
 cmaplabels=rand(nlabels,3);
     % Plot
     if param.iplot==1;
         pcshow(ptCloud.Location,labels);
-        colormap(cmaplabels);hold on;set(gcf,'color','w');
+        colormap(cmaplabels);
+        hold on;
+        set(gcf,'color','w');
         set(gca,'color','w');
         axis equal tight;
         hold on;
@@ -74,18 +107,48 @@ cmaplabels=rand(nlabels,3);
     end; 
     %print('-dpdf','-painters',nom);
 % Cluster Labels to prevent over-segmentation
-[labels,nlabels,stack,isink]=cluster_labels(ptCloud,param,indNeighbors,labels,nlabels,stack,ndon,isink,surface,normals);cmaplabels=rand(nlabels,3);
+[labels,nlabels,stack,isink]=cluster_labels(ptCloud,param,indNeighbors,labels,nlabels,stack,ndon,isink,surface,normals);
+cmaplabels=rand(nlabels,3);
     % Plot
-    if param.iplot==1;pcshow(ptCloud.Location,labels);colormap(cmaplabels);hold on;set(gcf,'color','w');set(gca,'color','w');axis equal tight;hold on;plot3(ptCloud.Location(isink,1),ptCloud.Location(isink,2),ptCloud.Location(isink,3),'.r');axis off;end
-    if param.saveplot==1 && param.iplot==1;nom=[param.figurefolder 'labels_cluster'];print('-djpeg','-r500',nom);savefig(nom);close;end; %print('-dpdf','-painters',nom);    
+    if param.iplot==1;
+        pcshow(ptCloud.Location,labels);
+        colormap(cmaplabels);
+        hold on;
+        set(gcf,'color','w');
+        set(gca,'color','w');
+        axis equal tight;
+        hold on;
+        plot3(ptCloud.Location(isink,1),ptCloud.Location(isink,2),ptCloud.Location(isink,3),'.r');
+        axis off;
+    end
+%     if param.saveplot==1 && param.iplot==1;
+%         nom=[param.figurefolder 'labels_cluster'];
+%         print('-djpeg','-r500',nom);
+%         savefig(nom);
+%         close;
+%     end; %print('-dpdf','-painters',nom);    
 
 %% Clean the segmentation
 if param.clean==1
     % Clean the segmentation
     [labels,nlabels,stack,isink]=clean_labels(ptCloud,param,indNeighbors,labels,nlabels,stack,ndon,isink,surface,normals);
     % Plot
-    if param.iplot==1;pcshow(ptCloud.Location,labels);colormap(cmaplabels);hold on;set(gcf,'color','w');set(gca,'color','w');axis equal tight;hold on;plot3(ptCloud.Location(isink,1),ptCloud.Location(isink,2),ptCloud.Location(isink,3),'.r');axis off;end
-    if param.saveplot==1 && param.iplot==1;nom=[param.figurefolder 'labels_clean'];print('-djpeg','-r500',nom);savefig(nom);close;end; %print('-dpdf','-painters',nom);         
+    if param.iplot==1;
+        pcshow(ptCloud.Location,labels);
+        colormap(cmaplabels);
+        hold on;set(gcf,'color','w');
+        set(gca,'color','w');
+        axis equal tight;
+        hold on;
+        plot3(ptCloud.Location(isink,1),ptCloud.Location(isink,2),ptCloud.Location(isink,3),'.r');
+        axis off;
+    end
+%     if param.saveplot==1 && param.iplot==1;
+%         nom=[param.figurefolder 'labels_clean'];
+%         print('-djpeg','-r500',nom);
+%         savefig(nom);
+%         close;
+%     end; %print('-dpdf','-painters',nom);         
 end
 
 %% Generate a Pebble structure
@@ -137,7 +200,7 @@ tic;for k=1:nlabels;Cuboidm(k)=pcfitcuboid(pointCloud(Pebble(k).Location));end;t
     if param.saveplot==1 && param.iplot==1;nom=[param.figurefolder 'Acover_distribution'];print('-djpeg','-r500',nom);savefig(nom);print('-dpdf','-painters',nom);  close;end
 
 %% Grain-size orientation
-[granulo]=ellipsoidorientation3d(ptCloudRot,Ellipsoidm,granulo);   
+[granulo]=ellipsoidorientation3d(ptCloud,Ellipsoidm,granulo);   
     % Plot
     if param.iplot==1;figure;
     subplot(1,3,1);histogram(granulo.angle_Mview.*180/pi,20,'FaceColor','c');xlim([0 180]);xlabel('angle (^o)');ylabel('N');title('azimuth angle');axis square;set(gca,'fontsize',7);

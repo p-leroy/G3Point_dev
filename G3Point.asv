@@ -182,12 +182,7 @@ if param.iplot==1
     set(cb,'position',[.5 .75 .1 .02]);
     ylabel(cb,'Labels');
 end; 
-    
-if param.saveplot==1 && param.iplot==1;
-    nom=[param.figurefolder 'fitted_ellipsoids'];print('-djpeg','-r500',nom);
-    savefig(nom);
-    close;
-end
+    if param.saveplot==1 && param.iplot==1;nom=[param.figurefolder 'fitted_ellipsoids'];print('-djpeg','-r500',nom);savefig(nom);close;end
 
 %% Grain-size distribution
 % Estimated based on the correctly fitted ellipsoids

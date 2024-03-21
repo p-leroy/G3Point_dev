@@ -3,14 +3,19 @@ function [Ellipsoidm]=fitellipsoidtograins(Pebble,param,nlabels)
 tic;
 display(['--- FITTING ELLIPSOIDS TO GRAINS']);
 for j=1:nlabels
-    P=Pebble(j).Location;Ellipsoidm(j).fitok=1;Ellipsoidm(j).Aqualityok=0;
+    P=Pebble(j).Location;
+    Ellipsoidm(j).fitok=1;
+    Ellipsoidm(j).Aqualityok=0;
     % Shift point cloud to have only positive coordinates (problem with
     % quadfit if the point cloud is far from the coordinates of the origin (0,0,0))
     meanx=nanmean(P(:,1)); meany=nanmean(P(:,2)); meanz=nanmean(P(:,3));
     maxx=nanmax(P(:,1));   maxy=nanmax(P(:,2));   maxz=nanmax(P(:,3));
     minx=nanmin(P(:,1));   miny=nanmin(P(:,2));   minz=nanmin(P(:,3));
     % find the scaling factor
-    dxmax=maxx-minx;dymax=maxy-miny;dzmax=maxz-minz;fact=1./nanmax(nanmax(dxmax,dymax),dzmax);
+    dxmax=maxx-minx;
+    dymax=maxy-miny;
+    dzmax=maxz-minz;
+    fact=1./nanmax(nanmax(dxmax,dymax),dzmax);
     switch param.fitmethod
         case 'direct'
             % Direct least squares fitting of ellipsoids under the constraint 4J - I^2 > 0. The constraint confines the class of ellipsoids to fit to those whose smallest radius is at least half of the largest radius.
@@ -63,7 +68,10 @@ for j=1:nlabels
     end
     if Ellipsoidm(j).fitok==1
         % Rescale the explicit parameters (the quaternions and R are unchanged by the scaling)
-        center(1)=center(1)/fact+meanx;center(2)=center(2)/fact+meany;center(3)=center(3)/fact+meanz;radii=radii/fact;
+        center(1)=center(1)/fact+meanx;
+        center(2)=center(2)/fact+meany;
+        center(3)=center(3)/fact+meanz;
+        radii=radii/fact;
         % Recompute the implicit form of the ellipsoid
         Ellipsoidm(j).p = ellipsoid_ex2im(center, radii, R);
         % Compute various metrics

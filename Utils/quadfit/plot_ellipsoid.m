@@ -29,8 +29,8 @@ z = reshape(X(:,3),n,n) + cz;
 
 % default argument values
 edgecolor = 'magenta';
-%axescolor = 'black';
-axescolor = 'none';
+axescolor = 'black';
+%axescolor = 'none';
 
 % parse arguments
 argin = cell(1,0);

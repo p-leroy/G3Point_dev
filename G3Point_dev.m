@@ -101,7 +101,41 @@ R = python_rotation;
 
 plot_ellipsoid(cx, cy, cz, ap, bp, cp, R);
 
+%% Plot ellipsoid
 
+% Plot
 
+h=figure;
+plot3(ptCloud.Location(:,1), ptCloud.Location(:,2), ptCloud.Location(:,3), '.k','MarkerSize',1);
+axis equal tight;
+hold on;
+axis off
+for j=[269, 352];  
+    try 
+        if Ellipsoidm(j).fitok==1; 
+            plot_ellipsoid_im(Ellipsoidm(j).p,'EdgeColor',cmaplabels(j,:)); 
+        end; 
+    end; 
+end;
+cb = colorbar('north');
+set(cb,'position',[.5 .75 .1 .02]);
+ylabel(cb,'Labels');
 
+%% Other plot
+pcshow(ptCloud.Location,labels);
+colormap(cmaplabels);
+hold on;
+set(gcf,'color','w');
+set(gca,'color','w');
+axis equal tight;
+hold on;
+plot3(ptCloud.Location(isink,1),ptCloud.Location(isink,2),ptCloud.Location(isink,3),'.r');
+axis off;
 
+for j=[351, 352];  
+    try 
+        if Ellipsoidm(j).fitok==1; 
+            plot_ellipsoid_im(Ellipsoidm(j).p,'EdgeColor',cmaplabels(j,:)); 
+        end; 
+    end; 
+end;

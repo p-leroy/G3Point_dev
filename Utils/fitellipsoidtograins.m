@@ -3,14 +3,25 @@ function [Ellipsoidm]=fitellipsoidtograins(Pebble,param,nlabels)
 tic;
 display(['--- FITTING ELLIPSOIDS TO GRAINS']);
 for j=1:nlabels
-    P=Pebble(j).Location;Ellipsoidm(j).fitok=1;Ellipsoidm(j).Aqualityok=0;
+    P=Pebble(j).Location;
+    Ellipsoidm(j).fitok=1;
+    Ellipsoidm(j).Aqualityok=0;
     % Shift point cloud to have only positive coordinates (problem with
     % quadfit if the point cloud is far from the coordinates of the origin (0,0,0))
-    meanx=nanmean(P(:,1)); meany=nanmean(P(:,2)); meanz=nanmean(P(:,3));
-    maxx=nanmax(P(:,1));   maxy=nanmax(P(:,2));   maxz=nanmax(P(:,3));
-    minx=nanmin(P(:,1));   miny=nanmin(P(:,2));   minz=nanmin(P(:,3));
+    meanx=nanmean(P(:,1)); 
+    meany=nanmean(P(:,2)); 
+    meanz=nanmean(P(:,3));
+    maxx=nanmax(P(:,1));   
+    maxy=nanmax(P(:,2));   
+    maxz=nanmax(P(:,3));
+    minx=nanmin(P(:,1));   
+    miny=nanmin(P(:,2));   
+    minz=nanmin(P(:,3));
     % find the scaling factor
-    dxmax=maxx-minx;dymax=maxy-miny;dzmax=maxz-minz;fact=1./nanmax(nanmax(dxmax,dymax),dzmax);
+    dxmax = maxx - minx;
+    dymax = maxy - miny;
+    dzmax = maxz - minz;
+    fact=1./nanmax(nanmax(dxmax,dymax),dzmax);
     switch param.fitmethod
         case 'direct'
             % Direct least squares fitting of ellipsoids under the constraint 4J - I^2 > 0. The constraint confines the class of ellipsoids to fit to those whose smallest radius is at least half of the largest radius.
@@ -63,14 +74,19 @@ for j=1:nlabels
     end
     if Ellipsoidm(j).fitok==1
         % Rescale the explicit parameters (the quaternions and R are unchanged by the scaling)
-        center(1)=center(1)/fact+meanx;center(2)=center(2)/fact+meany;center(3)=center(3)/fact+meanz;radii=radii/fact;
+        center(1)=center(1)/fact+meanx;
+        center(2)=center(2)/fact+meany;
+        center(3)=center(3)/fact+meanz
+        ;radii=radii/fact;
         % Recompute the implicit form of the ellipsoid
         Ellipsoidm(j).p = ellipsoid_ex2im(center, radii, R);
         % Compute various metrics
         % Recompute the explicit form (Not mandatory and redondant)
         [Ellipsoidm(j).c,Ellipsoidm(j).r,Ellipsoidm(j).q,Ellipsoidm(j).R] = ellipsoid_im2ex(Ellipsoidm(j).p); 
         % Extract the vectors of the 3 axis
-        Ellipsoidm(j).axis1=Ellipsoidm(j).R(:,1);Ellipsoidm(j).axis2=Ellipsoidm(j).R(:,2);Ellipsoidm(j).axis3=Ellipsoidm(j).R(:,3);
+        Ellipsoidm(j).axis1=Ellipsoidm(j).R(:,1);
+        Ellipsoidm(j).axis2=Ellipsoidm(j).R(:,2);
+        Ellipsoidm(j).axis3=Ellipsoidm(j).R(:,3);
         % distance and r2 between points and the ellipsoid
         [Ellipsoidm(j).d,Ellipsoidm(j).r2] = ellipsoid_distance(P(:,1),P(:,2),P(:,3),Ellipsoidm(j).p); 
         % volume and surface area of the ellipsoid
@@ -80,9 +96,13 @@ for j=1:nlabels
         % surface ratio of the pebble/ellipsoid (in %)
         Ellipsoidm(j).Aratio=sum(Pebble(j).surface)./Ellipsoidm(j).A;        
         % Surface cover of the ellipsoid (using a discretized ellipsoid and closest neighbours) (in %)
-        np=200;[xE,yE,zE]=randsamplingellipsoid(Ellipsoidm(j).r(1),Ellipsoidm(j).r(2),Ellipsoidm(j).r(3),Ellipsoidm(j).c(1),Ellipsoidm(j).c(2),Ellipsoidm(j).c(3),Ellipsoidm(j).R,np);Idx = knnsearch([xE yE zE],Pebble(j).Location);
+        np=200;
+        [xE,yE,zE]=randsamplingellipsoid(Ellipsoidm(j).r(1),Ellipsoidm(j).r(2),Ellipsoidm(j).r(3),Ellipsoidm(j).c(1),Ellipsoidm(j).c(2),Ellipsoidm(j).c(3),Ellipsoidm(j).R,np);
+        Idx = knnsearch([xE yE zE],Pebble(j).Location);
         Ellipsoidm(j).Acover=100.*numel(unique(Idx))./np;   
-        if Ellipsoidm(j).Acover>param.Aquality_thresh; Ellipsoidm(j).Aqualityok=1; end
+        if Ellipsoidm(j).Acover>param.Aquality_thresh; 
+            Ellipsoidm(j).Aqualityok=1; 
+        end
     end
 end
 % for j=1:nlabels

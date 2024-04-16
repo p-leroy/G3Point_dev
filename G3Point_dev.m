@@ -152,70 +152,26 @@ if param.clean==1
 end
 
 %% Generate a Pebble structure
-for i=1:nlabels;ind=find(labels==i);
-    Pebble(i).Location=ptCloud.Location(ind,:);
-    Pebble(i).ind=ind;
-    Pebble(i).surface=surface(ind);
-end 
+for i=1:nlabels;ind=find(labels==i);Pebble(i).Location=ptCloud.Location(ind,:);Pebble(i).ind=ind;Pebble(i).surface=surface(ind);end 
 
 %% Fitting cuboids (no dip allowed but azimuth is optimized)
 % Fit
 display(['--- FITTING CUBOIDS TO GRAINS']);
-tic;
-for k=1:nlabels;
-    Cuboidm(k)=pcfitcuboid(pointCloud(Pebble(k).Location));
-end;
-toc 
-% Plot 
-if param.iplot==1
-    h=figure;
-    plot3(ptCloud.Location(:,1),ptCloud.Location(:,2),ptCloud.Location(:,3),'.k','MarkerSize',1);
-    axis equal tight;
-    hold on;
-    axis off
-    for j=1:nlabels;  
-        plot(Cuboidm(j));  
-    end; 
-    cb = colorbar('north');
-    set(cb,'position',[.5 .75 .1 .02]);
-    ylabel(cb,'Labels');
-end; % How to plot colored cuboids?
-    
-if param.saveplot==1 && param.iplot==1;
-    nom=[param.figurefolder 'fitted_cuboids'];
-    print('-djpeg','-r500',nom);
-    savefig(nom);
-    close;
-end
+tic;for k=1:nlabels;Cuboidm(k)=pcfitcuboid(pointCloud(Pebble(k).Location));end;toc
+    % Plot
+    if param.iplot==1
+    h=figure;plot3(ptCloud.Location(:,1),ptCloud.Location(:,2),ptCloud.Location(:,3),'.k','MarkerSize',1);axis equal tight;hold on;axis off
+    for j=1:nlabels;  plot(Cuboidm(j));  end; cb = colorbar('north');set(cb,'position',[.5 .75 .1 .02]);ylabel(cb,'Labels');end; % How to plot colored cuboids?
+    if param.saveplot==1 && param.iplot==1;nom=[param.figurefolder 'fitted_cuboids'];print('-djpeg','-r500',nom);savefig(nom);close;end
 
 %% Fitting ellipsoids
 % fit
 [Ellipsoidm]=fitellipsoidtograins(Pebble,param,nlabels);
-% Plot
-if param.iplot==1
-    h=figure;
-    plot3(ptCloud.Location(:,1),ptCloud.Location(:,2),ptCloud.Location(:,3),'.k','MarkerSize',1);
-    axis equal tight;
-    hold on;
-    axis off
-    for j=1:nlabels;  
-        try 
-            if Ellipsoidm(j).fitok==1; 
-                plot_ellipsoid_im(Ellipsoidm(j).p,'EdgeColor',cmaplabels(j,:)); 
-            end; 
-        end;
-    end;
-    cb = colorbar('north');
-    set(cb,'position',[.5 .75 .1 .02]);
-    ylabel(cb,'Labels');
-end; 
-
-if param.saveplot==1 && param.iplot==1;
-    nom=[param.figurefolder 'fitted_ellipsoids'];
-    print('-djpeg','-r500',nom);
-    savefig(nom);
-    close;
-end
+    % Plot
+    if param.iplot==1
+    h=figure;plot3(ptCloud.Location(:,1),ptCloud.Location(:,2),ptCloud.Location(:,3),'.k','MarkerSize',1);axis equal tight;hold on;axis off
+    for j=1:nlabels;  try if Ellipsoidm(j).fitok==1; plot_ellipsoid_im(Ellipsoidm(j).p,'EdgeColor',cmaplabels(j,:)); end; end; end;cb = colorbar('north');set(cb,'position',[.5 .75 .1 .02]);ylabel(cb,'Labels');end; 
+    if param.saveplot==1 && param.iplot==1;nom=[param.figurefolder 'fitted_ellipsoids'];print('-djpeg','-r500',nom);savefig(nom);close;end
 
 %% Grain-size distribution
 % Estimated based on the correctly fitted ellipsoids

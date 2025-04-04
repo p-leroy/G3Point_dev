@@ -27,6 +27,9 @@ for j=1:nlabels
             % Direct least squares fitting of ellipsoids under the constraint 4J - I^2 > 0. The constraint confines the class of ellipsoids to fit to those whose smallest radius is at least half of the largest radius.
             try
                 % Ellispoid fit
+                if j == 352
+                    disp(352)
+                end;
                 Ellipsoidm(j).p = ellipsoidfit_direct(fact.*(P(:,1)-meanx),fact.*(P(:,2)-meany),fact.*(P(:,3)-meanz));
                 % Define the explicit parameters
                 [center,radii,quat,R] = ellipsoid_im2ex(Ellipsoidm(j).p);
@@ -73,11 +76,14 @@ for j=1:nlabels
             end
     end
     if Ellipsoidm(j).fitok==1
+        if (j == 352)
+            disp(352);
+        end
         % Rescale the explicit parameters (the quaternions and R are unchanged by the scaling)
         center(1)=center(1)/fact+meanx;
         center(2)=center(2)/fact+meany;
-        center(3)=center(3)/fact+meanz
-        ;radii=radii/fact;
+        center(3)=center(3)/fact+meanz;
+        radii=radii/fact;
         % Recompute the implicit form of the ellipsoid
         Ellipsoidm(j).p = ellipsoid_ex2im(center, radii, R);
         % Compute various metrics

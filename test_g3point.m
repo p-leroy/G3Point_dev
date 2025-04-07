@@ -74,7 +74,8 @@ cmaplabels=rand(nlabels,3);
         close;
     end; 
     %print('-dpdf','-painters',nom);
-% Cluster Labels to prevent over-segmentation
+
+%% Cluster Labels to prevent over-segmentation
 [labels,nlabels,stack,isink]=cluster_labels(ptCloud,param,indNeighbors,labels,nlabels,stack,ndon,isink,surface,normals);
 cmaplabels=rand(nlabels,3);
     % Plot
@@ -120,7 +121,12 @@ if param.clean==1
 end
 
 %% Generate a Pebble structure
-for i=1:nlabels;ind=find(labels==i);Pebble(i).Location=ptCloud.Location(ind,:);Pebble(i).ind=ind;Pebble(i).surface=surface(ind);end 
+for i=1:nlabels;
+    ind=find(labels==i);
+    Pebble(i).Location=ptCloud.Location(ind,:);
+    Pebble(i).ind=ind;
+    Pebble(i).surface=surface(ind);
+end 
 
 %% Fitting cuboids (no dip allowed but azimuth is optimized)
 % Fit

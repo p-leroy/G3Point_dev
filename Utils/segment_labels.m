@@ -14,6 +14,7 @@ rec=indNeighbors(sub2ind(size(indNeighbors),[1:numel(x)]',rec));
 % Find sinks nodes (local maxima)
 % isink=find(slope>=0);rec(isink)=isink;
 isink=find(slope>0);
+%isink=find(slope>=0); % FOR COMPATIBILITY WITH PYTHON
 rec(isink)=isink;
 
 % Donors
